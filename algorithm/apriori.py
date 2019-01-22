@@ -6,8 +6,7 @@ class tool(object):
 
     @staticmethod
     def toList(element):
-        val = []
-        val.append(element)
+        val = [element]
         return val
 
 class apriori(object):
