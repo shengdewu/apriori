@@ -12,6 +12,6 @@ if '__main__' == __name__:
     print(retC)
     print(L1)
 
-    support = alg.calcApriori(dataSet, 0.5)
+    support = alg.calcApriori(dataSet, 0.7)
 
     print(support)

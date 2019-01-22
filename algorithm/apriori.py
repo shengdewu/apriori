@@ -4,6 +4,11 @@ class tool(object):
     def testData(self):
         return [[1,3,4],[2,3,5],[1,2,3,5],[2,5]]
 
+    @staticmethod
+    def toList(element):
+        val = []
+        val.append(element)
+        return val
 
 class apriori(object):
     def calcC1(self, dataSet):
@@ -12,11 +17,7 @@ class apriori(object):
             tmp = set(val)
             C.update(tmp)
         C = sorted(C)
-        C1 = []
-        for c in C:
-            t = []
-            t.append(c)
-            C1.append(t)
+        C1 = list(map(tool.toList, C))
         return C1
 
     def calcCk(self, Ck_1):
