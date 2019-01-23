@@ -36,7 +36,7 @@ class apriori(object):
                     Ck.append(tmp)
         return Ck
 
-    def scanData(self, dataSet, Ck, limit):
+    def scanData(self, dataSet, Ck, minSupport=0.5):
         support = {}
         for C in Ck:
             for val in dataSet:
@@ -50,7 +50,7 @@ class apriori(object):
         retC = []
         for key, val in support.items():
             sup = val[1] / num
-            if sup >= limit:
+            if sup >= minSupport:
                 retSup[key] = [val[0],sup]
                 retC.append(val[0])
 
@@ -59,9 +59,11 @@ class apriori(object):
 
     def calcApriori(self, dataSet, limit):
         support = []
+        L = []
         C1 = self.calcC1(dataSet)
         L1, L1Sup = self.scanData(dataSet, C1, limit)
         support.append(L1Sup)
+        L.append(L1)
 
         Ck_1 = L1
         while True:
@@ -70,5 +72,75 @@ class apriori(object):
             if not Lk:
                 break
             support.append(LkSup)
+            L.append(Lk.copy())
             Ck_1 = Lk
-        return support
+        return L, support
+
+    def calcR2(self, L):
+        Ck = []
+        for i in range(len(L)-1):
+            for j in range(i+1, len(L)):
+                tmp = list(set([L[i], L[j]]))
+                Ck.append(tmp)
+        return Ck
+
+    def calcR1(self, L):
+        C1 = []
+        for l in L:
+            C1.append([l])
+        return C1
+
+    def calcRule(self,Lk):
+        rule = {}
+        for L in Lk:
+            for l in L:
+                if len(l) <= 1:
+                    continue
+                if len(l) == 2:
+                    rule[str(l)] = self.calcR1(l)
+                    continue
+                l2 = self.calcR2(l)
+                r = l2
+                lk_1 = l2
+                m = 3
+                while len(l) > m:
+                    lk = self.calcCk(lk_1)
+                    r.extend(lk)
+                    m += 1
+                    lk_1 = lk
+
+                rule[str(l)] = r
+        return rule
+
+    def calcConfidence(self, pfh, freq, minConf=0.7):
+        # p freq_p h
+        validConf = {}
+        for r in pfh:
+            conf = freq[1]/r[1]
+            if conf >= minConf:
+                key = str(r[0]) + '-->' + str(r[2])
+                validConf[key] = conf
+        return validConf
+
+    def calcDepend(self, L, support, minConf = 0.7):
+        '''
+        P-->H = (p|h)/p
+        '''
+        ruleDict = self.calcRule(L)
+        print(ruleDict)
+        validConf = []
+        for key, rule in ruleDict.items():
+            index = len(rule[0])
+            freq = support[index].get(key)
+
+            validP= []  # p freq_p h
+            for r in rule:
+                p = list(set(freq[0]) - set(r))
+                pVal = support[0].get(str(p))
+                if pVal:
+                    validP.append((pVal[0], pVal[1], r))
+            validConf.append(self.calcConfidence(validP, freq, minConf))
+
+        return validConf
+
+
